@@ -50,6 +50,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         {connected ? <span>Connected with <b>{account}</b></span> :<button onClick={() => connect(1)}>Connect to Metamask</button>}
+        {connected ? <button onClick={() => connect(1)}>Disconnect</button> : <span></span>}
       </header>
     </div>
   );
