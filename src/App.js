@@ -9,22 +9,22 @@ function App() {
   let [connected, setConnected] = useState(false);
   let [account, setAccount] = useState("Ox")
 
-  useEffect(() => {
-    let run = async () => {
-      checkConnection();
-    }
-    run();
-  },[connected])
+  // useEffect(() => {
+  //   let run = async () => {
+  //     checkConnection();
+  //   }
+  //   run();
+  // },[connected])
 
-  const checkConnection = async () => {
-    if(window.ethereum){
-      let accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      if (accounts.length > 0){
-        setConnected(true)
-        setAccount(accounts[0])
-      }
-    }
-  }
+  // const checkConnection = async () => {
+  //   if(window.ethereum){
+  //     let accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  //     if (accounts.length > 0){
+  //       setConnected(true)
+  //       setAccount(accounts[0])
+  //     }
+  //   }
+  // }
 
   const connect = async (remoteClient) => {
     try {
