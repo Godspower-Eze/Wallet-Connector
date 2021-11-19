@@ -7,7 +7,7 @@ import { FortmaticConnector } from '@web3-react/fortmatic-connector'
 import { PortisConnector } from '@web3-react/portis-connector'
 import { TorusConnector } from '@web3-react/torus-connector'
 
-export const injected = new InjectedConnector({ supportedChainIds: [ 3, 4, 5, 42, 56, 97] })
+export const injected = new InjectedConnector({ supportedChainIds: [1, 3, 4, 5, 42, 56, 97] })
 
 export const walletconnect = new WalletConnectConnector({
   rpc: { 1: "https://rinkeby.infura.io/v3/383b25ac0c524405b7e8be6c19bd4bcd", 97:"https://speedy-nodes-nyc.moralis.io/b480fa8c5228046e20cec984/bsc/testnet/archive" },
