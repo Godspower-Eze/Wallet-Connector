@@ -1,29 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { injected, walletconnect, authereum, walletlink, portis } from "../connectors";
-import { getChainName } from '../utils';
+import { getChainInfo, getChainName } from '../utils';
 import { NoEthereumProviderError, UserRejectedRequestError as UserRejectedRequestErrorInjected } from '@web3-react/injected-connector';
 import { UserRejectedRequestError as UserRejectedRequestErrorWalletConnect } from '@web3-react/walletconnect-connector';
 import { UnsupportedChainIdError } from '@web3-react/core';
 
 const Wallet = () => {
-    let [loading, setLoading] = useState(false)
-    let [errorRenderer, setErrorRenderer] = useState(false)
+    let [web3, setWeb3] = useState(null)
+    let [isMetamask, setIsMetamask] = useState(false)
+    let [isInjected, setIsInjected] = useState(false)
+    // let [loading, setLoading] = useState(false)
+
     const {
       account,
       activate,
       active,
       chainId,
-      connector,
       deactivate,
       error,
-      provider,
-      setError,
+      library,
+      connector
   } = useWeb3React();
 
     useEffect(()=>{
       errorHandler(error)
     },[error])
+
+    useEffect(()=>{
+      if(active === true){
+        setWeb3(library)
+      }
+    },[active])
+    
+    useEffect(()=>{
+      if(window.ethereum.isMetaMask){
+        setIsMetamask(true)
+      }
+    })
+
+    useEffect(()=>{
+      if(connector !== undefined){
+        if(connector.constructor.name === "InjectedConnector"){
+          setIsInjected(true)
+        }
+      }
+    }, [connector])
 
     const errorHandler = (error) => {
       if(error !== undefined){
@@ -33,8 +55,52 @@ const Wallet = () => {
         }else if(error instanceof UserRejectedRequestErrorInjected){
           console.log("User Rejected Injected")
         }else if(error instanceof UnsupportedChainIdError){
-          let chain = getChainName(chainId)
           window.alert("Unsupported Chain. Connect to a supported chain")
+        }else if(error instanceof NoEthereumProviderError){
+          window.alert("No Ethereum Provider found")
+        }
+      }
+    }
+
+    const messageSigner = async() => {
+        let signature = await web3.eth.sign("Sign this message", account)
+        console.log(signature)
+    }
+
+    const changeBlockchain = async (chainId) => {
+      try{
+        if(chainId.length !== 0){
+          chainId = parseInt(chainId)
+          let chainIdInHex = chainId.toString(16)
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: `0x${chainIdInHex}` }], // chainId must be in hexadecimal numbers
+          })
+        }
+      }catch(error){
+        try{
+          if (error.code === 4902){
+            let chainInfo = getChainInfo(chainId)
+            let chainIdInHex = chainInfo.chainId.toString(16)
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: `0x${chainIdInHex}`,
+                  chainName: chainInfo.chainName,
+                  nativeCurrency: {
+                    name: chainInfo.nativeCurrency.name,
+                    symbol: chainInfo.nativeCurrency.symbol, // 2-6 characters long
+                    decimals: chainInfo.nativeCurrency.decimals
+                  },
+                  blockExplorerUrls: chainInfo.blockExplorerUrls,
+                  rpcUrls: chainInfo.rpcUrls,
+                },
+              ],
+            })
+          }
+        }catch(error){
+          console.error(error)
         }
       }
     }
@@ -90,7 +156,32 @@ const Wallet = () => {
       <div>
       <p>Connected with {account}</p>
       <p>Chain: {getChainName(chainId)}</p>
-      <button onClick={disconnect}>Disconnect</button>
+      <br/>
+      <div>
+        {isMetamask === true && isInjected === true ?
+         <form>
+           <p>Change Blockchain:</p>
+            <select onChange={(e) => changeBlockchain(e.target.value)}>
+            <option></option>
+              <option value="1">Ethereum Mainnet</option>
+              <option value="56">Binance Smart Chain Mainnet</option>
+              <option value="97">Binance Smart Chain Testnet</option>
+              <option value="3">Ethereum Testnet Ropsten</option>
+              <option value="4">Ethereum Testnet Rinkeby</option>
+              <option value="5">Ethereum Testnet Görli</option>
+              <option value="42">Ethereum Testnet Kovan</option>
+  =          </select>
+          </form>:
+          <span></span>
+          }
+      </div>
+      <br/>
+      <div>
+        <button onClick={messageSigner}>Sign a message</button>
+      </div>
+      <div>
+        <button onClick={disconnect}>Disconnect</button>
+      </div>
       </div>
       :
       <div>
